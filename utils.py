@@ -25,3 +25,8 @@ def checkMsg(msg):
             checkMsg(msg)
         case _:
             TwilioResponse.message(msg)
+
+def sendMessage(message):
+            TwilioResponse = MessagingResponse()
+            TwilioResponse.message(message)
+            return TwilioResponse

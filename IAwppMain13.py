@@ -30,11 +30,6 @@ def whatsapp_reply():
 
         print(result_queue)
 
-
-
-
-
-
         TwilioResponse = MessagingResponse()
         #utils.checkMsg(sesionThread)
         TwilioResponse.message(result_queue.get())
