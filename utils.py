@@ -7,12 +7,14 @@ def limpiar_texto(IAResponseText):
     return msg
 
 def generateMsg(incomingMsg, result_queue):
+    actualContext = [{"role": "system", "content": cr.AI_PROMPT},
+        {"role": "user", "content": incomingMsg}]
     IAresponse = cr.CLIENT.chat.completions.create(
     model= cr.AI_MODEL,
-    messages=[
-        {"role": "system", "content": cr.AI_PROMPT},
-        {"role": "user", "content": incomingMsg}])
+    messages = actualContext)
     
+    addContext(actualContext)
+
     IAResponseText = IAresponse.choices[0].message.content
     msg = limpiar_texto(IAResponseText)
     result_queue.put(msg)
@@ -26,7 +28,17 @@ def checkMsg(msg):
         case _:
             TwilioResponse.message(msg)
 
-def sendMessage(message):
+def sendMessage(message, context):
             TwilioResponse = MessagingResponse()
             TwilioResponse.message(message)
             return TwilioResponse
+
+def addContext(context, actualContext):
+     context.append(actualContext)
+     
+
+# Hay que pasar context, dentro de generateMsg() como un parametro en messages=
+# Debe de ser una lista de diccionarios: 
+#                                       {"role": "system", "content": cr.AI_PROMPT},
+#                                       {"role": "user", "content": incomingMsg}
+# De alguna forma hay que crear una funcion que vaya guardando lo que se envía dentro del mensaje
