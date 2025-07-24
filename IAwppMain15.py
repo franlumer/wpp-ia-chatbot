@@ -17,15 +17,16 @@ app = Flask(__name__)
 
 def whatsapp_reply():
     incomingMsg = request.form.get('Body')
-    incomingNum = request.form.get('From')
+    incomingNum = request.form.get('From') # returns whatsapp:+5493885107546
+    incomingNum = incomingNum.replace('whatsapp:+', '') # returns 5493885107546
 
-    if incomingMsg.lower() == "/exit":    
+    if incomingMsg.lower() == "/exit":
         return str(utils.sendMessage("Cerrando sesion..."))
 
     else:
         resultQueue = queue.Queue()
 
-        sesionThread = threading.Thread(target=utils.generateMsg, args=(incomingMsg, resultQueue))
+        sesionThread = threading.Thread(target=utils.generateMsg, args=(incomingMsg, incomingNum, resultQueue))
         sesionThread.start()
 
         return str(utils.sendMessage(resultQueue.get()))
