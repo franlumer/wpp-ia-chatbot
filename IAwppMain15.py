@@ -17,17 +17,18 @@ app = Flask(__name__)
 
 def whatsapp_reply():
     incomingMsg = request.form.get('Body')
+    incomingNum = request.form.get('From')
 
     if incomingMsg.lower() == "/exit":    
         return str(utils.sendMessage("Cerrando sesion..."))
 
     else:
-        result_queue = queue.Queue()
+        resultQueue = queue.Queue()
 
-        sesionThread = threading.Thread(target=utils.generateMsg, args=(incomingMsg, result_queue))
+        sesionThread = threading.Thread(target=utils.generateMsg, args=(incomingMsg, resultQueue))
         sesionThread.start()
 
-        return str(utils.sendMessage(result_queue.get()))
+        return str(utils.sendMessage(resultQueue.get()))
 
 if __name__ == "__main__":
     app.run(port=8080, debug= True)
