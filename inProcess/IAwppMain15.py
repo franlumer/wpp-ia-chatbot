@@ -17,23 +17,19 @@ app = Flask(__name__)
 
 def whatsapp_reply():
     incomingMsg = request.form.get('Body')
+    incomingNum = request.form.get('From') # returns whatsapp:+5493885107546
+    incomingNum = incomingNum.replace('whatsapp:+', '') # returns 5493885107546
 
     if incomingMsg.lower() == "/exit":
-        TwilioResponse = MessagingResponse()
-        TwilioResponse.message("Cerrando sesion...")
-        return str(TwilioResponse)
+        return str(utils.sendMessage("Cerrando sesion..."))
 
     else:
-        result_queue = queue.Queue()
-        sesionThread = threading.Thread(target=utils.generateMsg, args=(incomingMsg, result_queue))
+        resultQueue = queue.Queue()
+
+        sesionThread = threading.Thread(target=utils.generateMsg, args=(incomingMsg, incomingNum, resultQueue))
         sesionThread.start()
 
-        print(result_queue)
-
-        TwilioResponse = MessagingResponse()
-        #utils.checkMsg(sesionThread)
-        TwilioResponse.message(result_queue.get())
-        return str(TwilioResponse)      
+        return str(utils.sendMessage(resultQueue.get()))
 
 if __name__ == "__main__":
     app.run(port=8080, debug= True)
