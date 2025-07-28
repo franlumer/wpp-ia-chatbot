@@ -2,10 +2,24 @@ import re
 import credentials as cr
 from twilio.twiml.messaging_response import MessagingResponse
 
-chats = {} # Clave (numero) : Valor (lista de mensajes)
+chats = {} # numero : [mensajes]
+
+class Context: 
+    def __init__(self):
+        self.messages = {}
+
+    def add(self, incomingNum, incomingMsg = None, AIResponse = None):
+        if incomingNum not in self.messages:
+            self.messages[incomingNum] = [{"role": "system", "content": cr.AI_PROMPT}]
+            self.messages[incomingNum].append({"role": "user", "content": incomingMsg}, {"role": "assistant", "content": AIResponse})
+        else:
+            self.messages[incomingNum].append({"role": "user", "content": incomingMsg}, {"role": "assistant", "content": AIResponse})
+
+    def reset(self):
+        self.messages = {}
 
 def limpiar_texto(IAResponseText):
-    msg = re.sub(r"<think>.*</think>", " ", IAResponseText, flags= re.DOTALL)
+    msg = re.sub(r".*</think>", " ", IAResponseText, flags= re.DOTALL)
     return msg
 
 def generateMsg(incomingMsg, incomingNum, result_queue):
@@ -16,12 +30,19 @@ def generateMsg(incomingMsg, incomingNum, result_queue):
     try: 
         IAresponse = cr.CLIENT.chat.completions.create(
         model= cr.AI_MODEL,
-        messages = chats[incomingNum])
+        messages = [{"role": "system", "content": cr.AI_PROMPT},
+        {"role": "user", "content": incomingMsg}])
+
+        Context.add(incomingNum)
 
     except Exception as e:
-        IAresponse = cr.CLIENT.chat.completions.create(
-        model= cr.AI_MODEL,
-        messages = [{"role": "user", "content": incomingMsg}])      
+        result_queue.put(f'Error: {e}')  
+
+    try:
+        Context.add(incomingNum, incomingMsg, limpiar_texto(IAresponse.choices[0].message.content))    
+
+    except Exception as e:
+        result_queue.put(f'Error: {e}')
 
     IAResponseText = IAresponse.choices[0].message.content
     msg = limpiar_texto(IAResponseText)
@@ -51,8 +72,3 @@ def addContext(incomingNum, incomingMsg, IAResponseText):
     chats[incomingNum].append({"role": "assistant", "content": IAResponseText})
 
 
-# Hay que pasar context, dentro de generateMsg() como un parametro en messages=
-# Debe de ser una lista de diccionarios: 
-#                                       {"role": "system", "content": cr.AI_PROMPT},
-#                                       {"role": "user", "content": incomingMsg}
-# De alguna forma hay que crear una funcion que vaya guardando lo que se envía dentro del mensaje
