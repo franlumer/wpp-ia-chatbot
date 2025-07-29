@@ -7,6 +7,9 @@ import utils
 
 app = Flask(__name__)
 
+Message = utils.Message()
+Context = utils.Context()
+
 @app.route("/whatsapp", methods=["POST","GET"])
 
 def whatsapp_reply():
@@ -15,26 +18,35 @@ def whatsapp_reply():
     incomingNum = incomingNum.replace('whatsapp:+', '')  # returns 5493885107546
 
     match incomingMsg.lower():
+        case '/test':
+            return str(Message.send('*Conexión exitosa.*'))
         
-        case '/reset':
-            utils.Context.reset()
-            return str(utils.Message.send('*Contexto reiniciado.*'))
+        case '/resetcontext':
+            Context.reset()
+            return str(Message.send('*Contexto reiniciado.*'))
         
-        case '/start':
-            utils.Context.start()
-            return str(utils.Message.send('*Contexto iniciado.*'))
+        case '/startcontext':
+            Context.start()
+            return str(Message.send('*Contexto iniciado.*'))
             
-        case '/stop':
-            utils.Context.stop()
-            return(str(utils.Message.send('*Contexto detenido.*')))
+        case '/stopcontext':
+            Context.stop()
+            return str(Message.send('*Contexto detenido.*'))
+        
+        case '/showcontext':
+            return (str(Message.send(str(Context.messages))))
+        
+        case '/contextstatus':
+            print(str(Context.context))
+            return (str(Message.send(str(Context.context))))
         
         case _:
             resultQueue = queue.Queue()
 
-            sesionThread = threading.Thread(target=utils.Message.generate, args=(incomingMsg, incomingNum, resultQueue))
+            sesionThread = threading.Thread(target=Message.generate, args=(incomingMsg, incomingNum, resultQueue))
             sesionThread.start()
 
-            return str(utils.Message.send(resultQueue.get()))
+            return str(Message.send(resultQueue.get()))
 
 if __name__ == "__main__":
     app.run(port=8080, debug= True)

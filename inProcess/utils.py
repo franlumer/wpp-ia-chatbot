@@ -11,7 +11,9 @@ def limpiar_texto(IAResponseText):
 class Context: 
     def __init__(self):
         self.context = False
-        self.messages = {}
+        self.messages = {'default','default'}  # 1. {"role": "system", "content": PROMPT}
+                            # 2. {"role": "user", "content": CONSULTA}
+                            # 3. {"role": "asistant", "content": RESPUESTA}
 
     def add(self, incomingNum, incomingMsg = None, AIResponse = None):
         if incomingNum not in self.messages:
@@ -47,31 +49,63 @@ class Message:
         TwilioResponse.message(message)
         return TwilioResponse
 
-    def generate(self, incomingMsg, incomingNum, result_queue):
+    def generate(self, incomingMsg, incomingNum, resultQueue):
         
-        try: 
-            IAresponse = cr.CLIENT.chat.completions.create(
-            model= cr.AI_MODEL,
-            messages = [{"role": "system", "content": cr.AI_PROMPT},
-            {"role": "user", "content": incomingMsg}])
+        context = Context()
 
-        except Exception as e:
-            result_queue.put(f'Error: {e}')    
+        match context.context:
+            case True: # Logica en caso de que el contexto esté activo
+                print(context.messages)
+
+                if incomingNum in context.messages:
+                    chatContext = context.messages[incomingNum]
+                    
+                    chatContext.append({"role": "assistant", "content": incomingMsg})
+
+                else:
+                    context.messages[incomingNum] = []
+
+                    chatContext = context.messages[incomingNum]
+
+                    chatContext.append([{"role": "system", "content": cr.AI_PROMPT},
+                                        {"role": "user", "content": incomingMsg}])
+
+                IAresponse = cr.CLIENT.chat.completions.create(
+                model= cr.AI_MODEL,
+                messages = chatContext)
+
+                IAResponseText = IAresponse.choices[0].message.content
+
+                chatContext.append(limpiar_texto(IAResponseText))
+
+                resultQueue.put(limpiar_texto(IAResponseText))
+
+            case _: # Lógica de contexto desactivado
+                try: 
+                    IAresponse = cr.CLIENT.chat.completions.create(
+                    model= cr.AI_MODEL,
+                    messages = [{"role": "system", "content": cr.AI_PROMPT},
+                    {"role": "user", "content": incomingMsg}])
+
+                except Exception as e:
+                    resultQueue.put(f'Error (Completion): {e}')
         
         try:
-            match Context.context:
+            match context.context:
                 case True:
-                    Context.add(incomingNum, incomingMsg, limpiar_texto(IAresponse.choices[0].message.content))
+                    context.add(incomingNum, incomingMsg, limpiar_texto(IAresponse.choices[0].message.content))
+                    print(context.messages)
                 case _: 
                     pass
 
         except Exception as e:
-            result_queue.put(f'Error (context): {e}')
+            print(Context.messages)
+            resultQueue.put(f'Error (context): {e}')
 
         IAResponseText = IAresponse.choices[0].message.content
         msg = limpiar_texto(IAResponseText)
         
-        result_queue.put(msg)
+        resultQueue.put(msg)
 
 
 
