@@ -34,7 +34,7 @@ def whatsapp_reply():
             return str(Message.send('*Contexto detenido.*'))
         
         case '/showcontext':
-            return (str(Message.send(str(Context.messages))))
+            return (str(Message.send(str(Context.chats))))
         
         case '/contextstatus':
             print(str(Context.context))

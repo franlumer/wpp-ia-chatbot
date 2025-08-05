@@ -11,19 +11,20 @@ def limpiar_texto(IAResponseText):
 class Context: 
     def __init__(self):
         self.context = False
-        self.messages = {'default','default'}  # 1. {"role": "system", "content": PROMPT}
+        self.chats = {}  # 1. {"role": "system", "content": PROMPT}
                             # 2. {"role": "user", "content": CONSULTA}
                             # 3. {"role": "asistant", "content": RESPUESTA}
 
     def add(self, incomingNum, incomingMsg = None, AIResponse = None):
-        if incomingNum not in self.messages:
-            self.messages[incomingNum] = [{"role": "system", "content": cr.AI_PROMPT}]
-            self.messages[incomingNum].append({"role": "user", "content": incomingMsg}, {"role": "assistant", "content": AIResponse})
+        if incomingNum not in self.chats:
+            self.chats[incomingNum] = [{"role": "system", "content": cr.AI_PROMPT}] # Agrega el PROMPT
+            self.chats[incomingNum].append({"role": "user", "content": incomingMsg}, {"role": "assistant", "content": AIResponse}) # Agrega la consulta y la respuesta
+
         else:
-            self.messages[incomingNum].append({"role": "user", "content": incomingMsg}, {"role": "assistant", "content": AIResponse})
+            self.chats[incomingNum].append({"role": "user", "content": incomingMsg}, {"role": "assistant", "content": AIResponse})
 
     def reset(self):
-        self.messages = {}
+        self.chats = {}
 
     def start(self):
         self.context = True
@@ -55,17 +56,17 @@ class Message:
 
         match context.context:
             case True: # Logica en caso de que el contexto esté activo
-                print(context.messages)
+                print(context.chats)
 
-                if incomingNum in context.messages:
-                    chatContext = context.messages[incomingNum]
+                if incomingNum in context.chats:
+                    chatContext = context.chats[incomingNum]
                     
                     chatContext.append({"role": "assistant", "content": incomingMsg})
 
                 else:
-                    context.messages[incomingNum] = []
+                    context.chats[incomingNum] = []
 
-                    chatContext = context.messages[incomingNum]
+                    chatContext = context.chats[incomingNum]
 
                     chatContext.append([{"role": "system", "content": cr.AI_PROMPT},
                                         {"role": "user", "content": incomingMsg}])
@@ -84,7 +85,7 @@ class Message:
                 try: 
                     IAresponse = cr.CLIENT.chat.completions.create(
                     model= cr.AI_MODEL,
-                    messages = [{"role": "system", "content": cr.AI_PROMPT},
+                    chats = [{"role": "system", "content": cr.AI_PROMPT},
                     {"role": "user", "content": incomingMsg}])
 
                 except Exception as e:
@@ -94,12 +95,12 @@ class Message:
             match context.context:
                 case True:
                     context.add(incomingNum, incomingMsg, limpiar_texto(IAresponse.choices[0].message.content))
-                    print(context.messages)
+                    print(context.chats)
                 case _: 
                     pass
 
         except Exception as e:
-            print(Context.messages)
+            print(Context.chats)
             resultQueue.put(f'Error (context): {e}')
 
         IAResponseText = IAresponse.choices[0].message.content
