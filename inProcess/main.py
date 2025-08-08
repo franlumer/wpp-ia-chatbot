@@ -10,7 +10,11 @@ app = Flask(__name__)
 Message = utils.Message()
 Context = utils.Context()
 
-@app.route("/whatsapp", methods=["POST","GET"])
+resultQueue = queue.Queue()
+
+@app.route("/whatsapp", methods=["POST", "GET"])
+
+
 
 def whatsapp_reply():
     incomingMsg = request.form.get('Body')
@@ -18,35 +22,53 @@ def whatsapp_reply():
     incomingNum = incomingNum.replace('whatsapp:+', '')  # returns 5493885107546
 
     match incomingMsg.lower():
+        case '/help':
+            return str(Message.send(
+                "/help - Muestra esta ayuda.\n"
+                "/test - Verifica la conexión.\n"
+                "/resetcontext - Reinicia el contexto.\n"
+                "/startcontext - Inicia el contexto.\n"
+                "/stopcontext - Detiene el contexto.\n"
+                "/showcontext - Muestra el contexto actual.\n"
+                "/contextstatus - Muestra el estado del contexto."
+            ))
+        
         case '/test':
-            return str(Message.send('*Conexión exitosa.*'))
+            print('/test')
+            resultQueue.put('*Conexión exitosa.*')
         
         case '/resetcontext':
+            print('/resetcontext')
             Context.reset()
-            return str(Message.send('*Contexto reiniciado.*'))
+            resultQueue.put('*Contexto reiniciado.*')
         
         case '/startcontext':
+            print('/startcontext')
             Context.start()
-            return str(Message.send('*Contexto iniciado.*'))
+            resultQueue.put('*Contexto iniciado.*')
             
         case '/stopcontext':
+            print("/stopcontext")
             Context.stop()
-            return str(Message.send('*Contexto detenido.*'))
+            resultQueue.put('*Contexto detenido.*')
         
         case '/showcontext':
-            return (str(Message.send(str(Context.chats))))
+            print('/showcontext')
+            if not Context.chats:
+                resultQueue.put('*No hay contexto guardado.*')
+            else:
+                resultQueue.put(Context.chats)
         
         case '/contextstatus':
+            print('/contextstatus')
             print(str(Context.context))
-            return (str(Message.send(str(Context.context))))
+            resultQueue.put(str(Context.context))
         
         case _:
-            resultQueue = queue.Queue()
-
             sesionThread = threading.Thread(target=Message.generate, args=(incomingMsg, incomingNum, resultQueue))
             sesionThread.start()
 
-            return str(Message.send(resultQueue.get()))
+    return str(Message.send(resultQueue.get()))
 
 if __name__ == "__main__":
     app.run(port=8080, debug= True)
