@@ -89,10 +89,15 @@ class Message:
             try: 
                 AIresponse = cr.CLIENT.chat.completions.create(
                 model= cr.AI_MODEL,
-                chats = [{"role": "system", "content": cr.AI_PROMPT},
-                        {"role": "user", "content": incomingMsg}])
+                messages = [{"role": "system", "content": cr.AI_PROMPT},
+                        {"role": "user", "content": str(incomingMsg)}])
+                        
+                AIResponseText = AIresponse.choices[0].message.content
 
-                AIResponseText = limpiar_texto(AIresponse.choices[0].message.content)
+                if AIResponseText: 
+                    AIResponseText = limpiar_texto(AIresponse.choices[0].message.content)
+                else:
+                    AIResponseText = "No se pudo obtener respuesta de la IA."
 
                 resultQueue.put(AIResponseText)
                 
