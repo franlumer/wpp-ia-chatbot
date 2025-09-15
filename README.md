@@ -52,8 +52,9 @@ Messages sent to a Twilio WhatsApp number are received via webhook, processed by
    TWILIO_ACCOUNT_SID=your_account_sid
    TWILIO_AUTH_TOKEN=your_auth_token
    TWILIO_WHATSAPP_NUMBER=whatsapp:+1234567890
-   Add any local AI model settings as needed.
    ```
+   Add any local AI model settings as needed.
+
 
 ## Usage
 
