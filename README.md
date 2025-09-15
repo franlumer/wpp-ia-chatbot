@@ -37,39 +37,37 @@ Messages sent to a Twilio WhatsApp number are received via webhook, processed by
    git clone https://github.com/franlumer/wpp-ia-chatbot.git
    cd wpp-ia-chatbot
    ```
-Set up a virtual environment (optional but recommended):
-```bash
-python3 -m venv venv
-source venv/bin/activate      # Linux / macOS
-venv\Scripts\activate         # Windows
-Install dependencies:
-```
-
-```bash
-pip install -r requirements.txt
-```
-Configure environment variables (e.g., in a .env file): 
-
-```ini
-TWILIO_ACCOUNT_SID=your_account_sid
-TWILIO_AUTH_TOKEN=your_auth_token
-TWILIO_WHATSAPP_NUMBER=whatsapp:+1234567890
-Add any local AI model settings as needed.
-```
+2. **Set up a virtual environment (optional but recommended)**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate      # Linux / macOS
+   venv\Scripts\activate         # Windows
+   ```
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. **Configure environment variables (e.g., in a .env file)**
+   ```ini
+   TWILIO_ACCOUNT_SID=your_account_sid
+   TWILIO_AUTH_TOKEN=your_auth_token
+   TWILIO_WHATSAPP_NUMBER=whatsapp:+1234567890
+   Add any local AI model settings as needed.
+   ```
 
 ## Usage
 
-Expose your local server with a tunnel of your choice
-For example, using ngrok:
+1. Expose your local server with a tunnel of your choice
+- For example, using ngrok:
 ```bash
 ngrok http 5000
 ```
 
-Copy the generated public HTTPS URL.
-Set the Twilio webhook to the public URL followed by your endpoint (e.g., https://<your-ngrok-url>/webhook).
-Start the application:
+2. Copy the generated public HTTPS URL.
+- Set the Twilio webhook to the public URL followed by your endpoint (e.g., https://<your-ngrok-url>/webhook).
+- Start the application:
 ```bash
 python main.py
 ```
 
-Send a WhatsApp message to your Twilio number and the bot will respond using the local AI model.
+**Send a WhatsApp message to your Twilio number and the bot will respond using the local AI model.**
