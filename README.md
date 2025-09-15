@@ -58,16 +58,16 @@ Messages sent to a Twilio WhatsApp number are received via webhook, processed by
 ## Usage
 
 1. Expose your local server with a tunnel of your choice
-- For example, using ngrok:
-```bash
-ngrok http 5000
-```
+   - For example, using ngrok:
+   ```bash
+   ngrok http 5000
+   ```
 
 2. Copy the generated public HTTPS URL.
-- Set the Twilio webhook to the public URL followed by your endpoint (e.g., https://<your-ngrok-url>/webhook).
-- Start the application:
-```bash
-python main.py
-```
+   - Set the Twilio webhook to the public URL followed by your endpoint (e.g., https://<your-ngrok-url>/webhook).
+   - Start the application:
+   ```bash
+   python main.py
+   ```
 
 **Send a WhatsApp message to your Twilio number and the bot will respond using the local AI model.**
