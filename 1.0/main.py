@@ -17,8 +17,8 @@ app = Flask(__name__)
 
 def whatsapp_reply():
     incomingMsg = request.form.get('Body')
-    incomingNum = request.form.get('From') # returns whatsapp:+5493885107546
-    incomingNum = incomingNum.replace('whatsapp:+', '') # returns 5493885107546
+    incomingNum = request.form.get('From') # returns number
+    incomingNum = incomingNum.replace('whatsapp:+', '') # returns number
 
     if incomingMsg.lower() == "/exit":
         return str(utils.sendMessage("Cerrando sesion..."))
